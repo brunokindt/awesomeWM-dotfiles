@@ -46,7 +46,8 @@ beautiful.init(os.getenv("HOME") .. "/.config/awesome/themes/pbr/theme.lua")
 
 
 -- This is used later as the default terminal and editor to run.
-terminal = "konsole"
+--terminal = "konsole"
+terminal = "urxvt256c-ml"
 editor = os.getenv("EDITOR") or "nano"
 editor_cmd = terminal .. " -e " .. editor
 
