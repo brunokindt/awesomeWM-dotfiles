@@ -123,7 +123,8 @@ menubar.utils.terminal = terminal -- Set the terminal for applications that requ
 -- {{{ Wibox
 markup = lain.util.markup
 notification = "#961227"
-alert = "#feb41c"
+alert        = "#FEB41C"
+gray         = "#94928F"
 
 -- Create a textclock widget
 mytextclock = awful.widget.textclock()
@@ -154,8 +155,34 @@ batterywidget = lain.widgets.bat({
     end
 
     widget:set_markup( bat_markup .. " |")
+
+    if bat_now.status == "Not present" then
+      widget:set_markup( " NB |")
+    else
+      widget:set_markup( bat_markup .. " |")
+    end
   end
 })
+
+-- CPU
+sysloadwidget = lain.widgets.sysload({
+    settings = function()
+        widget:set_markup(markup(gray, " L ") .. load_1 .. " |")
+    end
+})
+
+cpuwidget = lain.widgets.cpu({
+    settings = function()
+        widget:set_markup(markup(gray, " C ") .. cpu_now.usage .. " |")
+    end
+})
+--
+---- MEM
+--memwidget = lain.widgets.mem({
+--    settings = function()
+--        widget:set_markup(markup(gray, " Mem ") .. mem_now.used .. " ")
+--    end
+--})
 
 -- Create a wibox for each screen and add it
 mywibox = {}
@@ -222,7 +249,7 @@ for s = 1, screen.count() do
     mytaglist[s] = awful.widget.taglist(s, awful.widget.taglist.filter.all, mytaglist.buttons)
 
     -- Create a tasklist widget
-    mytasklist[s] = awful.widget.tasklist(s, awful.widget.tasklist.filter.currenttags, mytasklist.buttons)
+    mytasklist[s] = awful.widget.tasklist(s, awful.widget.tasklist.filter.minimizedcurrenttags, mytasklist.buttons)
 
     -- Create the wibox
     mywibox[s] = awful.wibox({ position = "top", screen = s })
@@ -235,6 +262,9 @@ for s = 1, screen.count() do
     -- Widgets that are aligned to the right
     local right_layout = wibox.layout.fixed.horizontal()
     if s == 1 then right_layout:add(wibox.widget.systray()) end
+
+    right_layout:add(sysloadwidget)
+    right_layout:add(cpuwidget)
     right_layout:add(batterywidget) 
     right_layout:add(mytextclock)
     right_layout:add(mylayoutbox[s])
@@ -246,6 +276,7 @@ for s = 1, screen.count() do
     layout:set_right(right_layout)
 
     mywibox[s]:set_widget(layout)
+    mywibox[s].visible = false
 end
 -- }}}
 
@@ -319,7 +350,13 @@ globalkeys = awful.util.table.join(
                   awful.util.getdir("cache") .. "/history_eval")
               end),
     -- Menubar
-    awful.key({ modkey }, "p", function() menubar.show() end)
+    awful.key({ modkey }, "p", function() menubar.show() end),
+
+    -- Show/Hide Wibox
+    awful.key({ modkey }, "b", function ()
+        mywibox[mouse.screen].visible = not mywibox[mouse.screen].visible
+    end) 
+
 )
 
 clientkeys = awful.util.table.join(
@@ -415,6 +452,12 @@ awful.rules.rules = {
       properties = { floating = true } },
     { rule = { class = "Vlc" },
       properties = { floating = true } },
+    { rule = { class = "feh" },
+      properties = { floating = true },
+       callback = function (c)
+         awful.placement.centered(c,nil)
+       end
+    },
     -- Set Firefox to always map on tags number 2 of screen 1.
     -- { rule = { class = "Firefox" },
     --   properties = { tag = tags[1][2] } },
